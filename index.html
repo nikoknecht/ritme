@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4f7a68">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ritme">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Ritme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: één smalle kolom als telefoonapp; rustige grijstinten met één gedempt salie-accent, niets dat prikkelt */
+:root{
+  --bg:#eef0ef; --surface:#f8f9f8; --line:#d5dad8; --fg:#1d2321; --muted:#66706c;
+  --accent:#4f7a68; --accent-soft:#dbe6e0; --warn:#a0693a; --warn-soft:#f0e4d8;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141716; --surface:#1c201f; --line:#2e3432; --fg:#e3e7e5; --muted:#8e9894;
+  --accent:#86b19e; --accent-soft:#25332d; --warn:#cf9a6b; --warn-soft:#33281f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141716; --surface:#1c201f; --line:#2e3432; --fg:#e3e7e5; --muted:#8e9894;
+  --accent:#86b19e; --accent-soft:#25332d; --warn:#cf9a6b; --warn-soft:#33281f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h1{font:700 1.7rem/1.1 var(--display);margin:0;letter-spacing:-.01em}
+h2{font:600 .78rem/1 var(--body);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 12px}
+.date{font:400 .85rem var(--mono);color:var(--muted)}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+nav button{font:500 .9rem var(--body);background:none;border:0;color:var(--muted);padding:9px 4px;border-radius:9px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--fg)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.streak{text-align:center;padding:26px 16px 20px}
+.streak .num{font:700 4.4rem/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.streak .unit{font:500 1rem var(--body);color:var(--muted);margin-top:4px}
+.streak .sub{font:400 .82rem var(--mono);color:var(--muted);margin-top:10px}
+.streak .why{font:500 1rem/1.4 var(--display);margin:16px auto 0;max-width:34ch;text-wrap:balance}
+.bigbtn{font:600 1.05rem var(--body);background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:15px 26px;cursor:pointer;width:100%}
+.btn{font:500 .9rem var(--body);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.linkbtn{background:none;border:0;color:var(--muted);font:500 .88rem var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
+.center{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.stats{font:400 .85rem var(--mono);color:var(--muted)}
+.timer{font:700 3rem/1 var(--mono);font-variant-numeric:tabular-nums}
+.breath{width:110px;height:110px;border-radius:50%;background:var(--accent-soft);border:2px solid var(--accent);transform:scale(.6)}
+.breath.go{animation:breathe 8s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.6)}50%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.breath.go{animation:none;transform:scale(.8)}}
+.alts{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.alts li{font-size:.85rem;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{font:500 .85rem var(--body);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--warn-soft);border-color:var(--warn)}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rules label{display:flex;gap:12px;align-items:center;padding:9px 4px;cursor:pointer;border-radius:8px}
+.rules input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.rules span{min-width:0}
+textarea,.field input,.addrow input{width:100%;min-width:0;font:400 .95rem var(--body);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+textarea{min-height:64px;resize:vertical}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi b{display:block;font:700 1.6rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:.78rem;color:var(--muted)}
+svg text{fill:var(--muted);font:10px var(--mono)}
+.chartwrap{overflow-x:auto}
+.barrow{display:flex;flex-direction:column;gap:4px}
+.barrow .top{display:flex;justify-content:space-between;gap:10px;font-size:.9rem}
+.barrow .top span:last-child{font-family:var(--mono);color:var(--muted)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.bar i.warn{background:var(--warn)}
+.list{display:flex;flex-direction:column;gap:8px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-size:.82rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ruleedit{display:flex;gap:8px;align-items:center;padding:3px 0}
+.ruleedit span{flex:1;min-width:0}
+.x{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:4px 8px}
+.addrow{display:flex;gap:8px;margin-top:8px}
+.tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.tips b{font-weight:600}
+code{font:500 .85rem var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;word-break:break-all}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+.status{font-size:.78rem;color:var(--muted);text-align:center}
+.empty{font-size:.88rem;color:var(--muted);margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body{margin:0;padding-top:max(20px,env(safe-area-inset-top,0px))}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1>Ritme</h1>
+    <span class="date" id="today"></span>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" id="tab-nu" aria-selected="true" data-view="nu">Nu</button>
+    <button role="tab" id="tab-inzicht" aria-selected="false" data-view="inzicht">Inzicht</button>
+    <button role="tab" id="tab-instellen" aria-selected="false" data-view="instellen">Instellen</button>
+  </nav>
+
+  <!-- NU -->
+  <div class="view" id="view-nu">
+    <section class="card streak">
+      <div class="num" id="streakNum">0</div>
+      <div class="unit" id="streakUnit">dagen</div>
+      <div class="sub" id="streakSub"></div>
+      <p class="why" id="whyText"></p>
+      <div class="center" style="margin-top:14px;gap:8px">
+        <button class="linkbtn" id="startToggle">Wanneer was de laatste keer? Pas aan</button>
+        <div id="startBox" hidden style="display:flex;gap:8px;width:100%;max-width:320px">
+          <input id="q-start" type="datetime-local" style="flex:1;min-width:0;font:400 .95rem var(--body);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:8px 10px">
+          <button class="btn primary" id="q-save">Opslaan</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card center" id="urgeCard">
+      <div id="urgeIdle" class="center" style="width:100%">
+        <button class="bigbtn" id="urgeBtn">Ik voel de drang</button>
+        <div class="stats" id="urgeStats"></div>
+      </div>
+      <div id="urgeActive" class="center" hidden>
+        <div class="breath" id="breath"></div>
+        <div class="timer" id="timer">1:30</div>
+        <p class="note" id="breathHint">Adem in terwijl de cirkel groeit, uit als hij krimpt. De drang zakt meestal binnen een paar minuten.</p>
+        <ul class="alts" id="altList"></ul>
+        <div class="actions">
+          <button class="btn primary" id="resistBtn">Gelukt, het is weg</button>
+          <button class="btn" id="gaveInBtn">Niet gelukt</button>
+        </div>
+      </div>
+      <div id="relapseForm" class="center" hidden style="width:100%">
+        <p style="margin:0;font:500 1rem/1.4 var(--display)">Oké. Geen drama, dit hoort bij het proces.</p>
+        <p class="note">Wat speelde er? Kies wat past, dat helpt je patronen zien.</p>
+        <div class="chips" id="triggerChips"></div>
+        <textarea id="relapseNote" placeholder="Optioneel: wat ging eraan vooraf?"></textarea>
+        <div class="actions">
+          <button class="btn primary" id="relapseSave">Opslaan en opnieuw beginnen</button>
+          <button class="btn" id="relapseCancel">Annuleer</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Vandaag</h2>
+      <ul class="rules" id="rulesList"></ul>
+    </section>
+
+    <div class="center"><button class="linkbtn" id="relapseBtn">Teruggevallen? Log het hier</button></div>
+  </div>
+
+  <!-- INZICHT -->
+  <div class="view" id="view-inzicht" hidden>
+    <section class="card">
+      <h2>Overzicht</h2>
+      <div class="kpis">
+        <div class="kpi"><b id="k-best">0</b><span>langste reeks (dagen)</span></div>
+        <div class="kpi"><b id="k-30">0</b><span>keer in 30 dagen</span></div>
+        <div class="kpi"><b id="k-urge">–</b><span>drang weerstaan</span></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Wanneer het misgaat</h2>
+      <div class="chartwrap"><svg id="hourChart" viewBox="0 0 440 130" width="100%" role="img" aria-label="Terugvallen per tijdstip"></svg></div>
+      <p class="note" id="hourNote"></p>
+    </section>
+    <section class="card">
+      <h2>Grootste triggers</h2>
+      <div class="list" id="triggerStats"></div>
+    </section>
+    <section class="card">
+      <h2>Regels gehaald, laatste 7 dagen</h2>
+      <div class="list" id="ruleStats"></div>
+    </section>
+  </div>
+
+  <!-- INSTELLEN -->
+  <div class="view" id="view-instellen" hidden>
+    <section class="card">
+      <h2>Mijn doel</h2>
+      <div class="field"><label for="s-why">Waarom ik dit doe</label><input id="s-why" type="text"></div>
+      <div class="grid2">
+        <div class="field"><label for="s-goal">Doel (dagen)</label><input id="s-goal" type="number" min="1"></div>
+        <div class="field"><label for="s-wait">Drang-timer (sec)</label><input id="s-wait" type="number" min="10"></div>
+      </div>
+      <div class="field"><label for="s-start">Reeks gestart op</label><input id="s-start" type="datetime-local"></div>
+    </section>
+    <section class="card"><h2>Dagelijkse regels</h2><div id="edit-rules"></div>
+      <div class="addrow"><input id="add-rules" type="text" placeholder="bv. gsm om 23u in de keuken"><button class="btn" data-add="rules">Voeg toe</button></div></section>
+    <section class="card"><h2>Wat ik doe in plaats daarvan</h2><div id="edit-alts"></div>
+      <div class="addrow"><input id="add-alts" type="text" placeholder="bv. 20 push-ups"><button class="btn" data-add="alts">Voeg toe</button></div></section>
+    <section class="card"><h2>Mijn triggers</h2><div id="edit-triggers"></div>
+      <div class="addrow"><input id="add-triggers" type="text" placeholder="bv. na het gamen"><button class="btn" data-add="triggers">Voeg toe</button></div></section>
+    <section class="card">
+      <h2>Back-up</h2>
+      <p class="note" style="margin-bottom:10px">Alles staat enkel op deze gsm. Kopieer je back-up en plak hem in je notities, zo ben je niets kwijt als je browsergegevens wist.</p>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn" id="bk-copy">Kopieer back-up</button>
+        <button class="btn" id="bk-show">Herstel back-up</button>
+      </div>
+      <div id="bk-box" hidden style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+        <textarea id="bk-text" placeholder="Plak hier je back-up"></textarea>
+        <button class="btn primary" id="bk-restore">Herstel</button>
+      </div>
+    </section>
+  </div>
+
+  <p class="status" id="status">Laden…</p>
+</div>
+
+<script>
+(() => {
+  const DEFAULTS = {
+    why: "Meer energie, focus en controle over mezelf.",
+    goal: 30, wait: 90, start: null,
+    rules: ["Gsm niet mee in bed", "Blokkering staat aan", "Gesport of buiten gewandeld", "Geen prikkelende accounts bekeken"],
+    alts: ["Koude douche", "20 push-ups", "Naar buiten", "Gsm in andere kamer", "Iemand bellen", "Water drinken"],
+    triggers: ["Verveling", "Stress", "Laat in bed", "Alleen thuis", "Iets gezien op socials", "Eenzaam", "Moe"]
+  };
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2, "0");
+  const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const todayKey = keyOf(new Date());
+  const DAY = 864e5;
+  $("today").textContent = new Date().toLocaleDateString("nl-BE", { weekday:"short", day:"numeric", month:"short" });
+
+  let settings = structuredClone(DEFAULTS);
+  let days = {};     // datum -> {rules:{}}
+  let events = [];   // {id, type:"urge"|"relapse", outcome?, triggers?, note?, ts}
+  let store;
+
+  // ---------- opslag: privé in je account (db), anders op dit toestel ----------
+  const local = {
+    load() {
+      try { const s = JSON.parse(localStorage.getItem("kompas.settings")||"null"); if (s) settings = {...settings, ...s}; } catch {}
+      try { days = JSON.parse(localStorage.getItem("kompas.days")||"{}") || {}; } catch {}
+      try { events = JSON.parse(localStorage.getItem("kompas.events")||"[]") || []; } catch {}
+    },
+    saveDay() { try { localStorage.setItem("kompas.days", JSON.stringify(days)); } catch {} },
+    saveSettings() { try { localStorage.setItem("kompas.settings", JSON.stringify(settings)); } catch {} },
+    addEvent() { try { localStorage.setItem("kompas.events", JSON.stringify(events)); } catch {} }
+  };
+
+  function init() {
+    local.load(); store = local; ensureStart(); store.saveSettings();
+    $("status").textContent = "Bewaard op deze gsm. Maak af en toe een back-up via Instellen.";
+    renderAll();
+  }
+  function ensureStart() { if (!settings.start) { settings.start = Date.now(); return true; } return false; }
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const today = () => (days[todayKey] ||= { date: todayKey, rules: {} });
+
+  // ---------- tabs ----------
+  document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+    ["nu","inzicht","instellen"].forEach(v => $("view-"+v).hidden = v !== b.dataset.view);
+    if (b.dataset.view === "inzicht") renderInsight();
+    if (b.dataset.view === "instellen") renderSettings();
+  }));
+
+  // ---------- reeks ----------
+  function renderStreak() {
+    const ms = Math.max(0, Date.now() - settings.start);
+    const d = Math.floor(ms / DAY), h = Math.floor(ms / 36e5) % 24;
+    $("streakNum").textContent = d;
+    $("streakUnit").textContent = d === 1 ? "dag" : "dagen";
+    const left = settings.goal - d;
+    $("streakSub").textContent = `${d}d ${h}u · ` + (left > 0 ? `nog ${left} tot je doel van ${settings.goal}` : `doel van ${settings.goal} gehaald`);
+    $("whyText").textContent = settings.why;
+  }
+  setInterval(renderStreak, 60000);
+
+  // ---------- vandaag ----------
+  function renderToday() {
+    renderStreak();
+    const t = today(), ul = $("rulesList"); ul.innerHTML = "";
+    settings.rules.forEach((r, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<label><input type="checkbox" id="rule-${i}"><span></span></label>`;
+      li.querySelector("span").textContent = r;
+      const cb = li.querySelector("input"); cb.checked = !!t.rules?.[r];
+      cb.addEventListener("change", () => { t.rules ||= {}; t.rules[r] = cb.checked; store.saveDay(); });
+      ul.appendChild(li);
+    });
+    const tu = events.filter(e => e.type === "urge" && keyOf(new Date(e.ts)) === todayKey);
+    const ok = tu.filter(e => e.outcome === "resisted").length;
+    $("urgeStats").textContent = tu.length ? `Vandaag ${ok} van ${tu.length} keer de drang laten gaan` : "Druk hierop zodra je het voelt opkomen.";
+    const al = $("altList"); al.innerHTML = "";
+    settings.alts.forEach(a => { const li = document.createElement("li"); li.textContent = a; al.appendChild(li); });
+  }
+
+  // ---------- drang & terugval ----------
+  let tick = null, endAt = 0, chosen = new Set();
+  function panel(which) { ["urgeIdle","urgeActive","relapseForm"].forEach(p => $(p).hidden = p !== which); $("breath").classList.toggle("go", which === "urgeActive"); }
+  $("urgeBtn").addEventListener("click", () => {
+    endAt = Date.now() + settings.wait * 1000; panel("urgeActive");
+    $("breathHint").textContent = "Adem in terwijl de cirkel groeit, uit als hij krimpt. De drang zakt meestal binnen een paar minuten.";
+    const step = () => {
+      const s = Math.max(0, Math.ceil((endAt - Date.now())/1000));
+      $("timer").textContent = `${Math.floor(s/60)}:${pad(s%60)}`;
+      if (!s) { clearInterval(tick); $("breathHint").textContent = "Tijd om op te staan. Kies iets uit je lijstje en doe het nu."; }
+    };
+    step(); clearInterval(tick); tick = setInterval(step, 250);
+  });
+  function addEvent(ev) { ev.id = newId(); ev.ts = Date.now(); events.push(ev); store.addEvent(ev); }
+  $("resistBtn").addEventListener("click", () => { clearInterval(tick); addEvent({ type:"urge", outcome:"resisted" }); panel("urgeIdle"); renderToday(); });
+  $("gaveInBtn").addEventListener("click", () => { clearInterval(tick); addEvent({ type:"urge", outcome:"gaveIn" }); openRelapse(); });
+  $("relapseBtn").addEventListener("click", openRelapse);
+  function openRelapse() {
+    chosen = new Set(); $("relapseNote").value = "";
+    const box = $("triggerChips"); box.innerHTML = "";
+    settings.triggers.forEach(tr => {
+      const b = document.createElement("button"); b.className = "chip"; b.textContent = tr; b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => { chosen.has(tr) ? chosen.delete(tr) : chosen.add(tr); b.setAttribute("aria-pressed", chosen.has(tr)); });
+      box.appendChild(b);
+    });
+    panel("relapseForm"); $("urgeCard").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  $("relapseCancel").addEventListener("click", () => { panel("urgeIdle"); renderToday(); });
+  $("relapseSave").addEventListener("click", () => {
+    const streakDays = Math.floor((Date.now() - settings.start) / DAY);
+    addEvent({ type:"relapse", triggers:[...chosen], note:$("relapseNote").value.trim(), streakDays });
+    settings.best = Math.max(settings.best || 0, streakDays);
+    settings.start = Date.now(); store.saveSettings();
+    panel("urgeIdle"); renderToday();
+  });
+
+  // ---------- inzicht ----------
+  function renderInsight() {
+    const cur = Math.floor((Date.now() - settings.start) / DAY);
+    $("k-best").textContent = Math.max(settings.best || 0, cur);
+    const rel = events.filter(e => e.type === "relapse");
+    $("k-30").textContent = rel.filter(e => e.ts > Date.now() - 30*DAY).length;
+    const urges = events.filter(e => e.type === "urge");
+    $("k-urge").textContent = urges.length ? Math.round(urges.filter(e => e.outcome === "resisted").length / urges.length * 100) + "%" : "–";
+
+    // per tijdsblok van 3 uur
+    const blocks = Array(8).fill(0); rel.forEach(e => blocks[Math.floor(new Date(e.ts).getHours()/3)]++);
+    const W = 440, H = 130, B = 20, T = 8, max = Math.max(1, ...blocks), bw = W / 8;
+    let s = `<line x1="0" x2="${W}" y1="${H-B}" y2="${H-B}" stroke="var(--line)"/>`;
+    const peak = blocks.indexOf(Math.max(...blocks));
+    blocks.forEach((v, i) => {
+      const h = (H - B - T) * v / max;
+      s += `<rect x="${i*bw+6}" y="${H-B-h}" width="${bw-12}" height="${Math.max(h, v ? 0 : 1.5)}" rx="3" fill="${v && i === peak ? "var(--warn)" : v ? "var(--accent)" : "var(--line)"}"/>`;
+      if (v) s += `<text x="${i*bw+bw/2}" y="${H-B-h-4}" text-anchor="middle">${v}</text>`;
+      s += `<text x="${i*bw+bw/2}" y="${H-5}" text-anchor="middle">${pad(i*3)}u</text>`;
+    });
+    $("hourChart").innerHTML = s;
+    $("hourNote").textContent = rel.length ? `Je zwakste moment: tussen ${pad(peak*3)}u en ${pad(peak*3+3)}u. Plan daar iets anders.` : "Nog geen terugvallen gelogd. Als het gebeurt, zie je hier je risico-uren.";
+
+    const counts = {}; rel.forEach(e => (e.triggers||[]).forEach(t => counts[t] = (counts[t]||0) + 1));
+    const top = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 5), tmax = top[0]?.[1] || 1;
+    const ts = $("triggerStats"); ts.innerHTML = top.length ? "" : `<p class="empty">Je triggers verschijnen hier na je eerste log.</p>`;
+    top.forEach(([name, n]) => ts.appendChild(barRow(name, `${n}×`, n/tmax, true)));
+
+    const rs = $("ruleStats"); rs.innerHTML = "";
+    const last7 = [...Array(7)].map((_, i) => keyOf(new Date(Date.now() - i*DAY)));
+    settings.rules.forEach(r => { const hit = last7.filter(k => days[k]?.rules?.[r]).length; rs.appendChild(barRow(r, `${hit}/7`, hit/7)); });
+  }
+  function barRow(label, val, frac, warn) {
+    const row = document.createElement("div"); row.className = "barrow";
+    row.innerHTML = `<div class="top"><span style="min-width:0"></span><span></span></div><div class="bar"><i${warn ? ' class="warn"' : ""} style="width:${frac*100}%"></i></div>`;
+    row.querySelectorAll(".top span")[0].textContent = label; row.querySelectorAll(".top span")[1].textContent = val;
+    return row;
+  }
+
+  // ---------- instellen ----------
+  const toLocalInput = ms => { const d = new Date(ms); return `${keyOf(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  function renderSettings() {
+    $("s-why").value = settings.why; $("s-goal").value = settings.goal; $("s-wait").value = settings.wait;
+    $("s-start").value = toLocalInput(settings.start);
+    ["rules","alts","triggers"].forEach(listName => {
+      const box = $("edit-" + listName); box.innerHTML = "";
+      settings[listName].forEach((item, i) => {
+        const row = document.createElement("div"); row.className = "ruleedit";
+        row.innerHTML = `<span></span><button class="x" aria-label="Verwijder">×</button>`;
+        row.querySelector("span").textContent = item;
+        row.querySelector("button").addEventListener("click", () => { settings[listName].splice(i, 1); store.saveSettings(); renderSettings(); renderToday(); });
+        box.appendChild(row);
+      });
+    });
+  }
+  $("s-why").addEventListener("input", e => { settings.why = e.target.value; store.saveSettings(); renderStreak(); });
+  $("s-goal").addEventListener("input", e => { const v = Number(e.target.value); if (v > 0) { settings.goal = v; store.saveSettings(); renderStreak(); } });
+  $("s-wait").addEventListener("input", e => { const v = Number(e.target.value); if (v >= 10) { settings.wait = v; store.saveSettings(); } });
+  $("s-start").addEventListener("change", e => { const v = new Date(e.target.value).getTime(); if (v && v <= Date.now()) { settings.start = v; store.saveSettings(); renderStreak(); } });
+  document.querySelectorAll("[data-add]").forEach(btn => {
+    const name = btn.dataset.add, input = $("add-" + name);
+    const add = () => { const v = input.value.trim(); if (!v || settings[name].includes(v)) return; settings[name].push(v); input.value = ""; store.saveSettings(); renderSettings(); renderToday(); };
+    btn.addEventListener("click", add); input.addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  });
+
+  $("startToggle").addEventListener("click", () => {
+    const b = $("startBox"); b.hidden = !b.hidden;
+    if (!b.hidden) { $("q-start").value = toLocalInput(settings.start); $("q-start").max = toLocalInput(Date.now()); }
+  });
+  $("q-save").addEventListener("click", () => {
+    const v = new Date($("q-start").value).getTime();
+    if (!v || v > Date.now()) { $("status").textContent = "Kies een moment in het verleden."; return; }
+    settings.start = v; store.saveSettings(); $("startBox").hidden = true; renderStreak();
+  });
+
+
+  $("bk-copy").addEventListener("click", async () => {
+    const txt = JSON.stringify({ v:1, settings, days, events });
+    try { await navigator.clipboard.writeText(txt); $("status").textContent = "Back-up gekopieerd. Plak hem in je notities."; }
+    catch { $("bk-box").hidden = false; $("bk-text").value = txt; $("bk-text").select(); $("status").textContent = "Kopiëren lukte niet automatisch. Selecteer de tekst en kopieer hem zelf."; }
+  });
+  $("bk-show").addEventListener("click", () => { $("bk-box").hidden = !$("bk-box").hidden; });
+  $("bk-restore").addEventListener("click", () => {
+    try {
+      const d = JSON.parse($("bk-text").value);
+      if (!d.settings) throw 0;
+      settings = { ...DEFAULTS, ...d.settings }; days = d.days || {}; events = d.events || [];
+      local.saveSettings(); local.saveDay(); local.addEvent();
+      $("bk-box").hidden = true; $("status").textContent = "Back-up hersteld."; renderAll(); renderSettings();
+    } catch { $("status").textContent = "Dat is geen geldige back-up. Plak de volledige tekst."; }
+  });
+  function renderAll() { renderToday(); }
+  init();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
