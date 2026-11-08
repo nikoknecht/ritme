@@ -171,7 +171,7 @@ body{margin:0;padding-top:max(20px,env(safe-area-inset-top,0px))}[hidden]{displa
       <div class="kpis">
         <div class="kpi"><b id="k-best">0</b><span>langste reeks (dagen)</span></div>
         <div class="kpi"><b id="k-30">0</b><span>keer in 30 dagen</span></div>
-        <div class="kpi"><b id="k-urge">–</b><span>drang weerstaan</span></div>
+        <div class="kpi"><b id="k-urge">–</b><span>sterk gebleven</span></div>
       </div>
     </section>
     <section class="card">
@@ -346,12 +346,18 @@ body{margin:0;padding-top:max(20px,env(safe-area-inset-top,0px))}[hidden]{displa
     $("k-best").textContent = Math.max(settings.best || 0, cur);
     const rel = events.filter(e => e.type === "relapse");
     $("k-30").textContent = rel.filter(e => e.ts > Date.now() - 30*DAY).length;
+    // Sterk gebleven = drang weerstaan. Niet gelukt = elke terugval, plus "Niet gelukt" zonder gelogde terugval.
+    // Een terugval binnen 30 min na "Niet gelukt" is hetzelfde moment en telt maar één keer.
     const urges = events.filter(e => e.type === "urge");
-    $("k-urge").textContent = urges.length ? Math.round(urges.filter(e => e.outcome === "resisted").length / urges.length * 100) + "%" : "–";
+    const won = urges.filter(e => e.outcome === "resisted").length;
+    const gaveIn = urges.filter(e => e.outcome === "gaveIn");
+    const unpaired = gaveIn.filter(u => !rel.some(r => r.ts >= u.ts && r.ts - u.ts < 30*60e3)).length;
+    const total = won + rel.length + unpaired;
+    $("k-urge").textContent = total ? Math.round(won / total * 100) + "%" : "–";
 
     // per tijdsblok van 3 uur
     const blocks = Array(8).fill(0); rel.forEach(e => blocks[Math.floor(new Date(e.ts).getHours()/3)]++);
-    const W = 440, H = 130, B = 20, T = 8, max = Math.max(1, ...blocks), bw = W / 8;
+    const W = 440, H = 130, B = 20, T = 18, max = Math.max(1, ...blocks), bw = W / 8;
     let s = `<line x1="0" x2="${W}" y1="${H-B}" y2="${H-B}" stroke="var(--line)"/>`;
     const peak = blocks.indexOf(Math.max(...blocks));
     blocks.forEach((v, i) => {
